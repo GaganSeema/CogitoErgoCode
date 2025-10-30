@@ -11,7 +11,7 @@ headers = {"Authorization": f"Bearer {HF_TOKEN}"}
 
 def query(payload):
     response = requests.post(API_URL, headers=headers, json=payload)
-    return response.content
+    return response
 
 @app.route('/')
 def index():
@@ -22,9 +22,14 @@ def generate():
     data = request.get_json()
     prompt = data.get('prompt')
 
-    image_bytes = query({
+    response = query({
         "inputs": prompt,
     })
+
+    if response.status_code != 200:
+        return jsonify({"error": "Failed to generate image. Please try again."}), response.status_code
+
+    image_bytes = response.content
 
     # Save the image
     if not os.path.exists('static/generated'):
